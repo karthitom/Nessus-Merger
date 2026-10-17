@@ -1,204 +1,143 @@
 # Nessus Merge Tool
 
-[![CI Tests](https://github.com/example/nessus-merge-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/example/nessus-merge-tool/actions)
-[![PowerShell](https://img.shields.io/badge/PowerShell-7%2B%20%7C%205.1-blue.svg)](https://microsoft.com/powershell)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+A simple, lightweight, single-file PowerShell CLI utility to merge and deduplicate multiple Tenable Nessus (`.nessus` v2) XML scan reports into a single consolidated file.
 
-A high-performance, command-line-only utility designed for cybersecurity engineers and penetration testers to consolidate multiple Tenable Nessus (`.nessus` v2) XML scan files into a unified report.
-
-Built exclusively using PowerShell and hardened .NET XML processing APIs (`System.Xml`), **Nessus Merge Tool** guarantees strict data integrity, zero external dependencies, robust host and vulnerability deduplication, and complete protection against XXE vulnerabilities.
+Designed for cybersecurity professionals, penetration testers, and vulnerability management engineers who need a reliable, self-contained tool without external dependencies, complex setups, or web services.
 
 ---
 
 ## Key Features
 
-- **Pure CLI Architecture**: Zero web dependencies, no Node/Python requirements, no GUI or cloud services. Runs locally in pure PowerShell.
-- **Strict Data Integrity**: Guaranteed zero silent loss of vulnerability evidence, CVE references, CVSS ratings, or plugin output.
-- **Safe Host Deduplication**: Intelligent host identity resolution using canonical IP address, FQDN, MAC, and NetBIOS heuristics.
-- **Service & Port-Aware Finding Deduplication**: Vulnerabilities matching across scans on identical ports/protocols are consolidated; differing findings across distinct ports (e.g., port 80 vs 443) or protocols (TCP vs UDP) are strictly preserved.
-- **Evidence Merging**: When multiple scans report the same vulnerability on a host with differing scan output, both outputs are cleanly preserved with source provenance demarcation.
-- **Ambiguity Guard (`KeepSeparate`)**: Prevents improper consolidation of hosts with conflicting network identities or overlapping subnets.
-- **Hardened XML Parser**: Enforces `DtdProcessing = Prohibit` and disables external entity resolvers (`XmlResolver = $null`) to neutralize XML External Entity (XXE) and billion-laughs expansion attacks.
-- **Atomic File Writing**: Writes consolidated XML to a temporary file, verifies the output document against Nessus schema and count metrics, and atomically moves to the final destination.
-- **Non-Destructive by Default**: Never modifies source files; protects existing destination files from accidental overwrite unless `-Force` is explicitly passed.
-- **Pre-Flight Validation Mode**: Rapidly tests batches of `.nessus` files for XML well-formedness and schema integrity without generating output.
-- **Informative Terminal Dashboard**: Displays a real-time progress stream and a structured summary box with calculated counts.
+- **Single-Script Design**: The entire tool lives inside `NessusMerge.ps1`. No modules to import, no package managers, and no external dependencies.
+- **Safe Deduplication**: Automatically merges matching host records and combines duplicate findings on the same port/service without losing distinct vulnerability evidence or plugin outputs.
+- **Port & Protocol Isolation**: Findings across different ports (e.g., port 80 vs 443) or protocols (TCP vs UDP) are strictly kept separate.
+- **Ambiguity Guard**: Keeps hosts with conflicting network identities (e.g., identical hostnames but differing IP addresses) separate to prevent data corruption.
+- **Secure XML Processing**: Built on .NET's hardened `System.Xml` APIs with external entity resolution and DTD processing disabled to prevent XML External Entity (XXE) attacks.
+- **Pre-Flight Validation**: Rapidly checks batches of scan files for syntax errors and Nessus schema validity using `-ValidateOnly` without creating an output file.
+- **Atomic File Writing**: Writes merged data to a temporary file, verifies the output document, and only then finalizes the destination file.
+- **Clear Terminal Summary**: Displays real-time progress and a clean summary box with accurate calculated metrics.
 
 ---
 
-## Directory Structure
+## Project Structure
 
-```
+```text
 nessus-merge-tool/
-├── src/
-│   ├── NessusMerge.ps1        # Main CLI entry point & workflow orchestrator
-│   ├── XmlValidator.ps1       # Hardened XML validation & XXE mitigation
-│   ├── HostDeduplicator.ps1   # Canonical host key resolution & property merging
-│   ├── FindingDeduplicator.ps1# Finding composite key matching & evidence consolidation
-│   └── Logger.ps1             # CLI ASCII banner, formatted summary, & logging
-├── tests/
-│   ├── Merge.Tests.ps1        # Integration test suite for all CLI workflows
-│   ├── Validation.Tests.ps1   # Unit test suite for XML parser and security checks
-│   └── Fixtures/              # Synthetic Nessus scan fixtures
-├── examples/
-│   └── README.md              # Real-world usage scenarios and automation recipes
-├── .github/
-│   └── workflows/
-│       └── tests.yml          # GitHub Actions CI matrix (Windows & Linux)
-├── .gitignore                 # Excludes real customer scan files, reports, logs
-├── LICENSE                    # MIT License
-└── README.md                  # Complete documentation and specifications
+├── NessusMerge.ps1
+└── README.md
 ```
+
+Everything required to run and maintain the project is contained in these two files.
 
 ---
 
 ## Prerequisites
 
 - **PowerShell**: PowerShell 7+ (`pwsh`) or Windows PowerShell 5.1.
-- **Runtime**: Built-in .NET Framework / .NET Core runtime (preinstalled on Windows, included with PowerShell on Linux/macOS).
-- **Testing (Optional)**: Pester 5.0+ (`Install-Module -Name Pester -Scope CurrentUser`).
+- **Operating System**: Windows, Linux, or macOS.
+- **Dependencies**: None. Uses built-in .NET XML processing (`System.Xml`).
 
 ---
 
-## Quick Start & CLI Usage
+## Installation & Setup
 
-### 1. Merge All Scan Files in a Directory
-
-Automatically discovers all `.nessus` files inside the target directory (recursively) and consolidates them:
+Clone the repository or download `NessusMerge.ps1`:
 
 ```powershell
-pwsh -File .\src\NessusMerge.ps1 `
+git clone https://github.com/karthitom/Nessus-Merger.git
+cd Nessus-Merger
+```
+
+---
+
+## CLI Usage
+
+### 1. Merge All Scans in a Folder
+
+Scan an entire folder and merge all discovered `.nessus` files into a single report:
+
+```powershell
+pwsh -File .\NessusMerge.ps1 `
   -InputPath ".\scans" `
-  -OutputPath ".\reports\merged_network_audit.nessus"
+  -OutputPath ".\merged.nessus"
 ```
 
-### 2. Merge Explicitly Selected Files
+### 2. Merge Selected Files
 
-Consolidate a specific list of scan files:
+Merge specific scan files by providing their paths:
 
 ```powershell
-pwsh -File .\src\NessusMerge.ps1 `
-  -Files ".\scans\internal_dmz.nessus", ".\scans\internal_lan.nessus" `
-  -OutputPath ".\reports\merged_corp.nessus"
+pwsh -File .\NessusMerge.ps1 `
+  -Files ".\scan1.nessus", ".\scan2.nessus" `
+  -OutputPath ".\merged.nessus"
 ```
 
-### 3. Enable Safe Deduplication (Default)
+### 3. Validate Scan Files Without Merging
 
-Consolidate identical host records and combine differing plugin outputs into unified findings:
-
-```powershell
-pwsh -File .\src\NessusMerge.ps1 `
-  -InputPath ".\scans" `
-  -OutputPath ".\reports\merged_safe.nessus" `
-  -DeduplicationMode Safe
-```
-
-### 4. Keep All Host Records Separate
-
-Preserve every host record as an independent `<ReportHost>` entry without merging (recommended for multi-tenant or multi-VLAN overlapping IP scans):
+Check all scan files in a folder for XML errors or missing Nessus elements without creating an output file:
 
 ```powershell
-pwsh -File .\src\NessusMerge.ps1 `
-  -InputPath ".\scans" `
-  -OutputPath ".\reports\multi_tenant.nessus" `
-  -KeepSeparate
-```
-
-### 5. Validate Input Files Without Merging
-
-Scan and check all input files for syntax errors, missing `<Report>` tags, or schema issues without generating an output file:
-
-```powershell
-pwsh -File .\src\NessusMerge.ps1 `
+pwsh -File .\NessusMerge.ps1 `
   -InputPath ".\scans" `
   -ValidateOnly
 ```
 
-### 6. Overwrite Existing Reports & Log to File
+### 4. Overwrite Existing Output & Save Log
+
+Use `-Force` to allow overwriting an existing output report and `-LogPath` to record operations:
 
 ```powershell
-pwsh -File .\src\NessusMerge.ps1 `
+pwsh -File .\NessusMerge.ps1 `
   -InputPath ".\scans" `
-  -OutputPath ".\reports\daily_merged.nessus" `
-  -LogPath ".\logs\daily_merge.log" `
+  -OutputPath ".\reports\merged.nessus" `
+  -LogPath ".\logs\merge.log" `
   -Force
 ```
 
-### 7. Display Help Menu
+### 5. Keep All Hosts Separate
+
+Disable host consolidation (recommended for multi-tenant scans with overlapping private IP addresses):
 
 ```powershell
-pwsh -File .\src\NessusMerge.ps1 -Help
+pwsh -File .\NessusMerge.ps1 `
+  -InputPath ".\scans" `
+  -OutputPath ".\merged.nessus" `
+  -KeepSeparate
+```
+
+### 6. Show Help
+
+```powershell
+pwsh -File .\NessusMerge.ps1 -Help
 ```
 
 ---
 
-## Parameters
+## Parameter Reference
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `-InputPath` | `String[]` | Conditional | `None` | Path to a directory containing `.nessus` files or individual file paths. |
-| `-Files` | `String[]` | Conditional | `None` | Array of explicit `.nessus` file paths. |
-| `-OutputPath` | `String` | Yes* | `None` | Destination path for the consolidated `.nessus` report (*not required if `-ValidateOnly` is set). |
-| `-DeduplicationMode` | `String` | No | `Safe` | Strategy: `Safe`, `None`, or `KeepSeparate`. |
-| `-KeepSeparate` | `Switch` | No | `False` | Forces all host records to remain separate (equivalent to `-DeduplicationMode KeepSeparate`). |
-| `-ValidateOnly` | `Switch` | No | `False` | Validates input scan files without generating a merged output file. |
+| `-InputPath` | `String[]` | No* | `None` | Folder containing `.nessus` files or paths to individual scan files. |
+| `-Files` | `String[]` | No* | `None` | Array or comma-separated list of explicit `.nessus` files. |
+| `-OutputPath` | `String` | Yes** | `None` | Destination path for the consolidated `.nessus` report. |
+| `-DeduplicationMode` | `String` | No | `Safe` | Deduplication strategy: `Safe` (default), `None`, or `KeepSeparate`. |
+| `-KeepSeparate` | `Switch` | No | `False` | Forces all host records to remain separate. |
+| `-ValidateOnly` | `Switch` | No | `False` | Validates input files without generating an output file. |
 | `-LogPath` | `String` | No | `None` | Optional file path to append execution and error logs. |
-| `-Force` | `Switch` | No | `False` | Allows overwriting the destination file if it already exists. |
-| `-Quiet` | `Switch` | No | `False` | Suppresses non-error console output (ideal for automation scripts). |
-| `-Help` | `Switch` | No | `False` | Displays parameter documentation and usage examples. |
+| `-Force` | `Switch` | No | `False` | Overwrite destination file if it already exists. |
+| `-Quiet` | `Switch` | No | `False` | Suppresses non-error console output. |
+| `-Help` | `Switch` | No | `False` | Displays the help menu and parameter reference. |
+
+*\* Either `-InputPath` or `-Files` must be provided.*  
+*\*\* `-OutputPath` is required unless `-ValidateOnly` is used.*
 
 ---
 
-## Deduplication Architecture & Rules
+## Terminal Summary
 
-### Host Identity Resolution Hierarchy
+After processing, `NessusMerge.ps1` displays a clear summary of actual counts:
 
-To accurately determine whether two `<ReportHost>` blocks represent the same machine, **Nessus Merge Tool** applies a prioritized identity hierarchy:
-
-1. **Canonical IP Address**: Evaluates the `host-ip` tag in `<HostProperties>`, validating IPv4 and IPv6 format.
-2. **ReportHost `name` Attribute**: If the attribute parses as a valid IP address.
-3. **MAC Address**: Evaluates `mac-address` tag.
-4. **Fully Qualified Domain Name (FQDN)**: Evaluates normalized lowercase `host-fqdn`.
-5. **NetBIOS Name**: Evaluates normalized uppercase `netbios-name`.
-6. **Hostname**: Evaluates normalized lowercase host name attribute.
-
-#### Ambiguity Guard
-If two host records share a name (e.g. `webserver`) but have conflicting IP addresses (`10.0.0.1` vs `192.168.1.1`), the tool detects the conflict and treats them as **separate hosts**, preventing cross-network data corruption.
-
-### Host Metadata Merging
-When two matching hosts are consolidated:
-- **Scan Timestamps**: `HOST_START` adopts the earliest timestamp; `HOST_END` adopts the latest timestamp.
-- **Host Tags**: Unique tags from both scans are unified.
-- **Conflicting Metadata**: If tags conflict (e.g. differing operating system names), the primary value is retained and secondary values are recorded with source provenance tags (`<tag name="os_conflict_scanB">`).
-
-### Finding Composite Keys & Evidence Consolidation
-
-Each finding (`<ReportItem>`) is evaluated using a composite uniqueness key:
-
-$$\text{FindingKey} = \text{PluginID} \parallel \text{Port} \parallel \text{Protocol} \parallel \text{ServiceName}$$
-
-- **Distinct Ports/Protocols**: Findings for the same plugin on port `80` and port `443` produce distinct keys and are **never** collapsed.
-- **Identical Findings**: If findings share the composite key and have identical `<plugin_output>`, the duplicate is deduplicated into a single `<ReportItem>`.
-- **Differing Evidence**: If findings share the composite key but contain distinct `<plugin_output>` (e.g., credentialed scan revealed additional proof), the tool safely combines the plugin outputs:
-  ```xml
-  <plugin_output>
-  [Source: network_scan.nessus]
-  Port 445/tcp service banner found.
-
-  ----------------------------------------
-  [Source: credentialed_scan.nessus]
-  Missing security update KB5001234 confirmed in registry.
-  </plugin_output>
-  ```
-- **CVE & Reference Merging**: Child tags including `<cve>`, `<xref>`, `<see_also>`, and CVSS ratings are merged into a comprehensive set without duplicates.
-
----
-
-## Terminal Summary Output
-
-Upon completion, **Nessus Merge Tool** renders a clean summary table:
-
-```
+```text
 ==========================================
        NESSUS MERGE TOOL SUMMARY
 ==========================================
@@ -206,25 +145,42 @@ Upon completion, **Nessus Merge Tool** renders a clean summary table:
 Input files         : 4
 Processed files     : 4
 Failed files        : 0
-Source host records : 152
-Consolidated hosts  : 140
-Findings processed  : 850
-Findings deduplicated: 42
-Unique findings     : 808
+Source host records : 28
+Consolidated hosts  : 20
+Findings processed  : 142
+Findings deduplicated: 18
+Unique findings     : 124
 
-Output: .\reports\merged.nessus
+Output: .\merged.nessus
 Status: SUCCESS
 ==========================================
 ```
 
 ---
 
-## Security & Reliability Architecture
+## Deduplication Rules
 
-- **XXE Prevention**: Strict prohibition of DTD processing (`DtdProcessing.Prohibit`) and entity resolution (`XmlResolver = $null`) prevents attacks such as CVE-2015-1828 / CWE-611.
-- **Atomic Operations**: Merged data is written to a unique temporary file (`.tmp.<GUID>.nessus`). The temporary file is validated for Nessus schema compliance before moving to the destination.
-- **Destructive Action Protection**: The output file is automatically excluded from the input list, and source files are never overwritten.
-- **Confidentiality**: All processing occurs strictly on the local machine. Scan data is never transmitted over external networks or third-party APIs.
+1. **Host Identification**:
+   - Primary: Canonical IP address (`host-ip` tag or ReportHost `name` attribute).
+   - Secondary: MAC address (`mac-address` tag).
+   - Tertiary: Fully Qualified Domain Name (`host-fqdn`).
+   - Quaternary: NetBIOS name (`netbios-name`).
+   - Fallback: Hostname attribute.
+   - Ambiguity: If two hosts share a hostname but have different IP addresses, they are kept as separate host records.
+
+2. **Host Metadata Merging**:
+   - `HOST_START`: Takes the earliest scan start time.
+   - `HOST_END`: Takes the latest scan end time.
+   - Conflicting properties are preserved with source annotations (e.g. `operating-system_conflict_scan2`).
+
+3. **Finding Identification**:
+   - Identity key: `PluginID | Port | Protocol | ServiceName`.
+   - Distinct services, ports, and protocols are never merged together.
+
+4. **Finding Evidence Merging**:
+   - If findings on the same host share the same identity key and identical `plugin_output`, they are deduplicated.
+   - If `plugin_output` differs between scans, both outputs are combined with source headers so that proof of vulnerability is never lost.
+   - Distinct CVEs, reference URLs, and highest CVSS scores are preserved.
 
 ---
 
@@ -233,34 +189,26 @@ Status: SUCCESS
 | Exit Code | Meaning |
 |---|---|
 | `0` | Success: All input files were processed and the merged file was validated. |
-| `1` | Error: Validation failed, invalid parameters provided, or fatal error encountered. |
+| `1` | Error: Validation failed, required parameters were missing, or processing encountered an error. |
 
 ---
 
-## Running Automated Tests
+## Security & Privacy Considerations
 
-Run the full Pester test suite covering unit validation and end-to-end merge scenarios:
-
-```powershell
-# Run all tests
-Invoke-Pester -Path .\tests -Output Detailed
-
-# Run validation suite only
-Invoke-Pester -Path .\tests\Validation.Tests.ps1 -Output Detailed
-
-# Run merge integration suite only
-Invoke-Pester -Path .\tests\Merge.Tests.ps1 -Output Detailed
-```
+- **Local Processing**: All scanning data is processed locally on your machine. Scan data is never transmitted over the internet.
+- **XXE Protection**: Built-in .NET XML readers prohibit DTD processing (`DtdProcessing.Prohibit`) and entity resolvers (`XmlResolver = $null`).
+- **Source Protection**: Source files are opened read-only and never modified. The output file is automatically excluded from input discovery.
+- **Atomic Operations**: Merged data is validated before replacing the target file, ensuring failed operations never leave corrupt reports.
 
 ---
 
 ## Known Limitations
 
-- **Report Memory Footprint**: Uses .NET `System.Xml.XmlDocument` for deep document validation and cross-host node manipulation. Scanning massive batches totaling tens of gigabytes of XML requires appropriate RAM allocation.
-- **Nessus Format Version**: Optimized for Nessus v2 XML format (`<NessusClientData_v2>`), which is the standard format used by Tenable Nessus, Tenable SecurityCenter, and Tenable.io exports.
+- **Nessus XML Version**: Designed for Nessus v2 XML format (`<NessusClientData_v2>`), the standard format used by Tenable Nessus, Tenable SecurityCenter, and Tenable.io exports.
+- **Memory Considerations**: Loads XML files into memory for deep validation. For exceptionally large batches (tens of gigabytes), ensure adequate system RAM.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open-source and released under the [MIT License](https://opensource.org/licenses/MIT).

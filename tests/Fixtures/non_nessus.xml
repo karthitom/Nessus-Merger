@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ScanResult version="1.0">
-  <Host ip="10.0.0.1">
-    <Port number="80" state="open" />
-  </Host>
-</ScanResult>
