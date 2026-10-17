@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NessusClientData_v2>
+  <Policy>
+    <policyName>Basic Network Scan</policyName>
+  </Policy>
+  <Report name="Multi-VLAN Scan" xmlns:cm="http://www.nessus.org/cm">
+    <ReportHost name="webserver">
+      <HostProperties>
+        <tag name="host-ip">10.0.0.1</tag>
+        <tag name="host-fqdn">webserver.vlan10.local</tag>
+      </HostProperties>
+      <ReportItem port="80" svc_name="http" protocol="tcp" severity="1" pluginID="10010" pluginName="HTTP Server Banner" pluginFamily="Web Servers">
+        <description>VLAN10 webserver</description>
+      </ReportItem>
+    </ReportHost>
+    <ReportHost name="webserver">
+      <HostProperties>
+        <tag name="host-ip">192.168.1.1</tag>
+        <tag name="host-fqdn">webserver.vlan20.local</tag>
+      </HostProperties>
+      <ReportItem port="80" svc_name="http" protocol="tcp" severity="1" pluginID="10010" pluginName="HTTP Server Banner" pluginFamily="Web Servers">
+        <description>VLAN20 webserver</description>
+      </ReportItem>
+    </ReportHost>
+  </Report>
+</NessusClientData_v2>

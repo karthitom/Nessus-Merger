@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NessusClientData_v2>
+  <Policy>
+    <policyName>Global Unicode Scan - 日本語 / Prüfbericht</policyName>
+  </Policy>
+  <Report name="Audit ⚡ Tokyo &amp; München Data Center" xmlns:cm="http://www.nessus.org/cm">
+    <ReportHost name="10.200.1.5">
+      <HostProperties>
+        <tag name="HOST_START">Thu Jan 01 12:00:00 2026</tag>
+        <tag name="HOST_END">Thu Jan 01 12:15:00 2026</tag>
+        <tag name="host-ip">10.200.1.5</tag>
+        <tag name="host-fqdn">東京サーバー.example.jp</tag>
+        <tag name="operating-system">Linux (Debian GNU/Linux 11 - bullseye) ☕</tag>
+      </HostProperties>
+      <ReportItem port="443" svc_name="https" protocol="tcp" severity="2" pluginID="10020" pluginName="TLS Certificate Information (東京)" pluginFamily="General">
+        <description>TLS Certificate issued for 株式会社テスト / München HQ.</description>
+        <risk_factor>Medium</risk_factor>
+        <solution>Renew SSL Certificate before expiration: 2027年12月31日.</solution>
+        <synopsis>SSL Certificate analysis.</synopsis>
+        <plugin_output>Subject: CN=東京サーバー.example.jp, O=テスト企業, L=東京都, C=JP</plugin_output>
+      </ReportItem>
+    </ReportHost>
+  </Report>
+</NessusClientData_v2>
