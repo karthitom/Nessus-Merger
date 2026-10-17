@@ -161,21 +161,27 @@ function Merge-HostProperties {
 
             # Handle timestamps: HOST_START (earliest) and HOST_END (latest)
             if ($tagName -eq 'HOST_START') {
-                $dtTarget = $null
-                $dtSource = $null
-                if ([DateTime]::TryParse($existingVal, [ref]$dtTarget) -and [DateTime]::TryParse($sourceVal, [ref]$dtSource)) {
+                try {
+                    $dtTarget = [DateTime]::Parse($existingVal)
+                    $dtSource = [DateTime]::Parse($sourceVal)
                     if ($dtSource -lt $dtTarget) {
                         $existingTag.InnerText = $sourceVal
                     }
                 }
+                catch {
+                    # Fallback string comparison or retain existing
+                }
             }
             elseif ($tagName -eq 'HOST_END') {
-                $dtTarget = $null
-                $dtSource = $null
-                if ([DateTime]::TryParse($existingVal, [ref]$dtTarget) -and [DateTime]::TryParse($sourceVal, [ref]$dtSource)) {
+                try {
+                    $dtTarget = [DateTime]::Parse($existingVal)
+                    $dtSource = [DateTime]::Parse($sourceVal)
                     if ($dtSource -gt $dtTarget) {
                         $existingTag.InnerText = $sourceVal
                     }
+                }
+                catch {
+                    # Fallback string comparison or retain existing
                 }
             }
             else {

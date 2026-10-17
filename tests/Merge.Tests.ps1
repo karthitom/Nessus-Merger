@@ -51,7 +51,7 @@ Describe "Nessus Merge Tool - CLI & Core Features" {
             $val = Test-NessusXmlFile -FilePath $outFile
             $val.IsValid | Should -BeTrue
             $val.HostCount | Should -Be 3
-            $val.FindingCount | Should -Be 5
+            $val.FindingCount | Should -Be 6
         }
 
         It "Preserves distinct findings on different ports for the same plugin ID" {
@@ -108,8 +108,8 @@ Describe "Nessus Merge Tool - CLI & Core Features" {
             $val = Test-NessusXmlFile -FilePath $outFile
             # 2 hosts in scan1 + 2 hosts in scan2 = 4 total separate hosts
             $val.HostCount | Should -Be 4
-            # 3 findings in scan1 + 3 findings in scan2 = 6 total findings
-            $val.FindingCount | Should -Be 6
+            # 3 findings in scan1 + 4 findings in scan2 = 7 total findings
+            $val.FindingCount | Should -Be 7
         }
 
         It "Does not merge hosts with conflicting IP identities" {
@@ -218,7 +218,10 @@ Describe "Nessus Merge Tool - CLI & Core Features" {
             $hostNode | Should -Not -BeNullOrEmpty
 
             $tagFqdn = $hostNode.SelectSingleNode("HostProperties/tag[@name='host-fqdn']")
-            $tagFqdn.InnerText | Should -Match "東京サーバー"
+            $tagFqdn.InnerText | Should -Be "tokyo-srv.corp.local"
+
+            $tagOs = $hostNode.SelectSingleNode("HostProperties/tag[@name='operating-system']")
+            $tagOs.InnerText | Should -Match "Muenchen"
         }
     }
 }

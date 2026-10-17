@@ -1,0 +1,27 @@
+# Real Nessus scan files & reports (prevent accidental commits of sensitive customer data)
+*.nessus
+!tests/Fixtures/*.nessus
+
+# Temporary files & swap files
+*.tmp
+*.tmp.*
+*.temp
+
+# Log files
+*.log
+logs/
+
+# Test output directories & artifacts
+TestOutput/
+reports/
+out.nessus
+
+# PowerShell & OS artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# IDE configurations
+.vscode/
+.idea/
