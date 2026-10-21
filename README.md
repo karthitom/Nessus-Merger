@@ -116,10 +116,10 @@ pwsh -File ./NessusMerge.ps1
 
 ## Installation
 
-1. **Clone the Repository** (replace `YOUR_USERNAME` with your actual GitHub username):
+1. **Clone the Repository**
 
    ```powershell
-   git clone https://github.com/YOUR_USERNAME/Nessus-Merger.git
+   git clone https://github.com/karthitom/Nessus-Merger.git
    cd Nessus-Merger
    ```
 
@@ -196,11 +196,11 @@ Customizes the input path, output filename, and internal report title:
 
 The parameters declared in `NessusMerge.ps1` are:
 
-| Parameter | Type | Default Value | Description |
-|---|---|---|---|
-| `-FilePath` | `[string]` | `(Get-Location).Path` | Target folder containing `.nessus` scan files. Supports relative and absolute paths. Aliases: `-InputPath`, `-Path`. |
+| Parameter         | Type       | Default Value                   | Description                                                                                                                         |
+| ----------------- | ---------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `-FilePath`       | `[string]` | `(Get-Location).Path`           | Target folder containing `.nessus` scan files. Supports relative and absolute paths. Aliases: `-InputPath`, `-Path`.                |
 | `-OutputFileName` | `[string]` | `"merged_nessus_report.nessus"` | Filename or path for the merged report. If a relative filename is provided, it is created inside `-FilePath`. Alias: `-OutputFile`. |
-| `-ReportName` | `[string]` | `"Merged Report"` | Value assigned to the `name` attribute of the `<Report>` XML element in the merged output. |
+| `-ReportName`     | `[string]` | `"Merged Report"`               | Value assigned to the `name` attribute of the `<Report>` XML element in the merged output.                                          |
 
 ---
 
@@ -324,7 +324,7 @@ Saving merged report to: 'D:\NessusScans\FinalReport.nessus'
 [SUCCESS] Successfully merged 12 host(s) into 'D:\NessusScans\FinalReport.nessus'.
 ```
 
-*(Note: File names, host counts, and paths in this example are illustrative and reflect your actual scan data during execution.)*
+_(Note: File names, host counts, and paths in this example are illustrative and reflect your actual scan data during execution.)_
 
 ---
 
@@ -345,26 +345,32 @@ To ensure proper expectations, consider the following technical boundaries of th
 ## Troubleshooting
 
 ### 1. `[WARN] No .nessus files found in '...'`
+
 - **Cause**: The input directory contains no files matching `*.nessus`, or the only matching file is the designated output file.
 - **Resolution**: Check your `-FilePath` parameter to ensure it points to the directory containing your `.nessus` exports.
 
 ### 2. `[ERROR] Input folder does not exist: ...`
+
 - **Cause**: The directory path supplied to `-FilePath` could not be found or is inaccessible.
 - **Resolution**: Verify folder spelling, path separators, and drive letters. Use quotation marks for paths with spaces (e.g., `-FilePath "C:\My Scans"`).
 
 ### 3. `[ERROR] Invalid Nessus file: No <Report> element found`
+
 - **Cause**: The file is empty or not a valid Nessus v2 XML export.
 - **Resolution**: Confirm that your scan was exported in Nessus XML format (`.nessus`) and not as a CSV, HTML, or Nessus DB file.
 
 ### 4. `[ERROR] Failed to load ...: Exception calling "Load" with "1" argument(s)`
+
 - **Cause**: Malformed XML syntax or an unexpected file format.
 - **Resolution**: Open the problematic `.nessus` file in an XML editor to verify that tags are properly closed and valid UTF-8 encoding is used.
 
 ### 5. Script Execution Policy Error (`PSSecurityException`)
+
 - **Cause**: Windows PowerShell default security policy restricts executing unsigned scripts.
 - **Resolution**: Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process` in your current PowerShell session.
 
 ### 6. Access Denied or File In Use Errors
+
 - **Cause**: The destination file is open in another program or the user lacks write permissions to the output folder.
 - **Resolution**: Close any programs (such as editors or viewers) using the output file and check your folder permissions.
 
@@ -373,6 +379,7 @@ To ensure proper expectations, consider the following technical boundaries of th
 ## Security and Privacy
 
 Tenable Nessus XML scan reports contain highly confidential infrastructure intelligence, including:
+
 - Internal and public IP addresses, hostnames, and MAC addresses.
 - Operating system versions and running services.
 - Detailed vulnerability descriptions, CVE references, and exploitation proof.
@@ -396,10 +403,10 @@ nessus-merge-tool/
 └── README.md
 ```
 
-| File | Purpose |
-|---|---|
+| File              | Purpose                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `NessusMerge.ps1` | The complete, self-contained PowerShell utility containing parameter handling, XML parsing, host-merging logic, and terminal output. |
-| `README.md` | Comprehensive user guide, architectural documentation, and usage instructions. |
+| `README.md`       | Comprehensive user guide, architectural documentation, and usage instructions.                                                       |
 
 ---
 
